@@ -15,6 +15,10 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
+          EXPAND = re.compile(r'\{\{([A-Za-z0-9+/=]+):(\d+)\}\}')
+          def expand(text):
+              return EXPAND.sub(lambda m: m.group(1) * int(m.group(2)), text)
           parts = Path('parts')
           parts.mkdir(exist_ok=True)
           for stem in ['shop-floor.jpg.b64', 'cad-fixtures.jpg.b64']:
@@ -22,8 +26,9 @@ jobs:
               if not files:
                   print('skip', stem)
                   continue
-              data = b''.join(f.read_bytes() for f in files)
-              Path(stem).write_bytes(data)
+              chunks = [expand(f.read_text(encoding='ascii')) for f in files]
+              data = ''.join(chunks)
+              Path(stem).write_text(data, encoding='ascii')
               print(stem, len(data), 'from', len(files), 'parts')
           PY
       - name: Commit assembled files
