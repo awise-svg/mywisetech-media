@@ -1,2 +1,2 @@
 # mywisetech-media
-Original Wise Technologies product photography for mywisetech.com (navy/orange industrial hardware renders). Not CribMaster assets.
+Original Wise Technologies product photography (navy/orange industrial hardware). Generated for mywisetech.com. Not CribMaster assets.
