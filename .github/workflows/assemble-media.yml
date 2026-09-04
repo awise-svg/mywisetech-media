@@ -19,6 +19,14 @@ jobs:
           EXPAND = re.compile(r'\{\{([A-Za-z0-9+/=]+):(\d+)\}\}')
           def expand(text):
               return EXPAND.sub(lambda m: m.group(1) * int(m.group(2)), text)
+          FIXES = {
+              'kiosk-menu-ui.jpg.b64.a': [
+                  ('SW+0uHHfVZP', 'SW+0uFHfVZP'),
+                  ('nQPsQGbgB71betu87', 'nQPsQGbgb71betu87'),
+                  ('Yf8 AvOj/AKzP', 'Yf8AvOj/AKzP'),
+                  ('qeP8 As7NSwh', 'qeP8As7NSwh'),
+              ],
+          }
           parts = Path('parts')
           parts.mkdir(exist_ok=True)
           stems = [
@@ -34,6 +42,10 @@ jobs:
                   continue
               chunks = [expand(f.read_text(encoding='ascii')) for f in files]
               data = ''.join(chunks)
+              for old, new in FIXES.get(stem, []):
+                  n = data.count(old)
+                  data = data.replace(old, new, 1)
+                  print('fix', stem, old, 'count_before', n)
               Path(stem).write_text(data, encoding='ascii')
               print(stem, len(data), 'from', len(files), 'parts')
           PY
