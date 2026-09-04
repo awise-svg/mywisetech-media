@@ -4,6 +4,9 @@ on:
     paths:
       - 'parts/**'
   workflow_dispatch:
+concurrency:
+  group: assemble-media
+  cancel-in-progress: false
 permissions:
   contents: write
 jobs:
@@ -53,6 +56,8 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add shop-floor.jpg.b64 cad-fixtures.jpg.b64 kiosk-menu-ui.jpg.b64.a kiosk-menu-ui.jpg.b64.b
+          git add shop-floor.jpg.b64 cad-fixtures.jpg.b64 kiosk-menu-ui.jpg.b64.a
+          if [ -f kiosk-menu-ui.jpg.b64.b ]; then git add kiosk-menu-ui.jpg.b64.b; fi
           git diff --cached --quiet || git commit -m "Assemble original product photo b64 files"
+          git pull --rebase origin main
           git push
