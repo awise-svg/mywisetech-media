@@ -1,0 +1,49 @@
+name: Restore exact cad-modeling and print-prototype
+on:
+  push:
+    paths:
+      - ".github/workflows/restore-cad-print.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply unique byte fixes
+        run: |
+          set -euo pipefail
+          python3 << 'PY'
+          from pathlib import Path
+          import hashlib
+
+          cad = Path("cad-modeling.jpg.b64")
+          t = cad.read_bytes()
+          t = t.replace(b"3o8zifVDgemYGoPmUC1o", b"3o8zifVDmemYGoPmUC1o", 1)
+          t = t.replace(b"XrZ6tvlgspy2CD3/CWLU", b"XrZ6tvlgypy2CD3/CWLU", 1)
+          t = t.replace(b"37TWZg/wEGAGjYVoodYe", b"37TWZg/wAGAGjYVoodYe", 1)
+          cad.write_bytes(t)
+          cad_hash = hashlib.sha256(t).hexdigest()
+          assert cad_hash == "db2d859b84b3e742377ef26f52f1d86f7c856537f8fc5946614805fd6b07e5e7", cad_hash
+
+          prt = Path("print-prototype.jpg.b64")
+          t2 = prt.read_bytes()
+          t2 = t2.replace(b"DK9VbM2bTTTKRgjWYFfR", b"DK9VbM2bRTTKRgjWYFfR", 1)
+          prt.write_bytes(t2)
+          prt_hash = hashlib.sha256(t2).hexdigest()
+          assert prt_hash == "dfa8901d43f5a1236c276098e4ad65ae47c7a3c8b79f24583941c996770d24fd", prt_hash
+          print("hashes ok")
+          PY
+      - name: Commit restored photos
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cad-modeling.jpg.b64 print-prototype.jpg.b64
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Restore exact Wise product photo base64 text"
+          git push
