@@ -1,0 +1,35 @@
+name: Import original Wise product photos
+on:
+  push:
+    paths:
+      - ".github/workflows/import-media.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and extract originals
+        run: |
+          set -euo pipefail
+          curl -fsSL -o /tmp/wise-media-jpgs.tar.gz https://litter.catbox.moe/6y4p48.gz
+          mkdir -p /tmp/media-in
+          tar -xzf /tmp/wise-media-jpgs.tar.gz -C /tmp/media-in
+          for f in hero-systems locker-crib locker-orbit locker-vend locker-draw locker-bay locker-hold locker-staff guard-facility cad-modeling print-prototype install-site kiosk-menu-ui mall-kiosk robot-pilot cad-fixtures shop-floor; do
+            test -s "/tmp/media-in/${f}.jpg.b64"
+            cp "/tmp/media-in/${f}.jpg.b64" "./${f}.jpg.b64"
+          done
+      - name: Commit photos
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add *.jpg.b64
+          if git diff --cached --quiet; then
+            echo "No changes"
+            exit 0
+          fi
+          git commit -m "Add original Wise product photos"
+          git push
