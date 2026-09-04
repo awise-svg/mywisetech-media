@@ -1,0 +1,35 @@
+name: assemble-media
+on:
+  push:
+    paths:
+      - 'parts/**'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  assemble:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble b64 files
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          parts = Path('parts')
+          parts.mkdir(exist_ok=True)
+          for stem in ['shop-floor.jpg.b64', 'cad-fixtures.jpg.b64']:
+              files = sorted(p for p in parts.glob(stem + '.p*') if p.is_file())
+              if not files:
+                  print('skip', stem)
+                  continue
+              data = b''.join(f.read_bytes() for f in files)
+              Path(stem).write_bytes(data)
+              print(stem, len(data), 'from', len(files), 'parts')
+          PY
+      - name: Commit assembled files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add shop-floor.jpg.b64 cad-fixtures.jpg.b64
+          git diff --cached --quiet || git commit -m "Assemble original product photo b64 files"
+          git push
