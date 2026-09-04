@@ -21,7 +21,13 @@ jobs:
               return EXPAND.sub(lambda m: m.group(1) * int(m.group(2)), text)
           parts = Path('parts')
           parts.mkdir(exist_ok=True)
-          for stem in ['shop-floor.jpg.b64', 'cad-fixtures.jpg.b64']:
+          stems = [
+              'shop-floor.jpg.b64',
+              'cad-fixtures.jpg.b64',
+              'kiosk-menu-ui.jpg.b64.a',
+              'kiosk-menu-ui.jpg.b64.b',
+          ]
+          for stem in stems:
               files = sorted(p for p in parts.glob(stem + '.p*') if p.is_file())
               if not files:
                   print('skip', stem)
@@ -35,6 +41,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add shop-floor.jpg.b64 cad-fixtures.jpg.b64
+          git add shop-floor.jpg.b64 cad-fixtures.jpg.b64 kiosk-menu-ui.jpg.b64.a kiosk-menu-ui.jpg.b64.b
           git diff --cached --quiet || git commit -m "Assemble original product photo b64 files"
           git push
